@@ -426,6 +426,18 @@ void PriorityQueue::Generate(PT pt)
         //     total_guesses += 1;
         // }
 
+        if(a->ordered_values.size() < 10000)
+        {
+            // 如果这个segment的value数量小于1000，直接串行处理
+            for (int i = 0; i < pt.max_indices[0]; i += 1)
+            {
+                string guess = a->ordered_values[i];
+                guesses.emplace_back(guess);
+                total_guesses += 1;
+            }
+            return;
+        }
+        
         // ==================== 最终PThread运行代码 ====================
         // 预计算总任务量
         const int n = pt.max_indices[0];
@@ -435,7 +447,7 @@ void PriorityQueue::Generate(PT pt)
         guesses.resize(original_size + n);
         
         // 计算每个线程的任务块
-        const int thread_num = 4;
+        const int thread_num = 6;
         pthread_t threads[thread_num];
         ThreadArgs args[thread_num];
         const int chunk_size = (n + thread_num - 1) / thread_num;
@@ -530,6 +542,18 @@ void PriorityQueue::Generate(PT pt)
         //     guesses.emplace_back(temp);
         //     total_guesses += 1;
         // }
+        
+        if (a->ordered_values.size() < 10000)
+        {
+            // 如果当前segment的value数量小于5000，直接使用单线程生成
+            for (int i = 0; i < pt.max_indices[pt.content.size() - 1]; i += 1)
+            {
+                string temp = guess + a->ordered_values[i];
+                guesses.emplace_back(temp);
+                total_guesses += 1;
+            }
+            return;
+        }
       
         // ==================== 最终PThread运行代码 ====================
         const int n = pt.max_indices[pt.content.size()-1];
@@ -537,7 +561,7 @@ void PriorityQueue::Generate(PT pt)
         
         guesses.resize(original_size + n);
 
-        const int thread_num = 4;
+        const int thread_num = 6;
         pthread_t threads[thread_num];
         ThreadArgs args[thread_num];
         const int chunk_size = (n + thread_num - 1) / thread_num;
